@@ -23,7 +23,7 @@ impl List {
             next,
         });
 
-        // not we need to set self.head equal to the new node which contains the old self.head
+        // now we need to set self.head equal to the new node which contains the old self.head
         // so, we are essentially pushing this new node into the front of the list while everything is moved back one
         self.head = Link::More(new_node);
     }
@@ -41,6 +41,19 @@ impl List {
         }
     }
 
+}
+
+impl Drop for List {
+    fn drop(&mut self) {
+        let mut cur_link = mem::replace(&mut self.head, Link::Empty);
+        // `while let` == "do this thing until this pattern doesn't match"
+        while let Link::More(mut boxed_node) = cur_link {
+            cur_link = mem::replace(&mut boxed_node.next, Link::Empty);
+            // boxed_node goes out of scope and gets dropped here;
+            // but its Node's `next` field has been set to Link::Empty
+            // so no unbounded recursion occurs.
+        }
+    }
 }
 
 enum Link {
