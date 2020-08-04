@@ -28,6 +28,19 @@ impl List {
         self.head = Link::More(new_node);
     }
 
+    pub fn pop(&mut self) -> Option<i32> {
+        // matching on the replaced &mut self.head while setting &mut self.head to Link::Empty temporarily
+        match mem::replace(&mut self.head, Link::Empty) {
+            Link::Empty => None,
+            // if there is a Link, and not empty, we want to move the current head (Link::Empty)
+            // to the next node and pull out the destructured, matched replaced &mut self.head's elem
+            Link::More(node) => {
+                self.head = node.next;
+                Some(node.elem)
+            }
+        }
+    }
+
 }
 
 enum Link {
@@ -38,4 +51,29 @@ enum Link {
 struct Node {
     elem: i32,
     next: Link,
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn basics() {
+        let mut list = List::new();
+
+        assert_eq!(list.pop(), None);
+
+        list.push(1);
+        list.push(2);
+        list.push(3);
+
+        assert_eq!(list.pop(), Some(3));
+        assert_eq!(list.pop(), Some(2));
+
+        list.push(4);
+
+        assert_eq!(list.pop(), Some(4));
+        assert_eq!(list.pop(), Some(1));
+        assert_eq!(list.pop(), None);
+    }
 }
